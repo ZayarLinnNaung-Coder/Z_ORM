@@ -26,14 +26,19 @@ public class DBConnectionFactoryImpl implements DBConnectionFactory {
         DBInfo dbInfo = configurationContext.getDbInfo();
         AbstractQueryFactory queryFactory = null;
         QueryExecutorService queryExecutorService = null;
+
         try {
             logger().info("Initializing Database Connection");
             logger().info("Url - " + dbInfo.getUrl());
             logger().info("Username - " + dbInfo.getUsername());
             logger().info("Password - " + dbInfo.getPassword());
+
+            // get connection from driverManager
             connection = DriverManager.getConnection(dbInfo.getUrl(), dbInfo.getUsername(), dbInfo.getPassword());
 
             queryFactory = createQueryFactory(configurationContext.getDialectType());
+
+            // create query executor service
             queryExecutorService = queryFactory.createQueryExecutorService();
             queryExecutorService.setDdlType(configurationContext.getDdlType());
             queryExecutorService.setConnection(connection);

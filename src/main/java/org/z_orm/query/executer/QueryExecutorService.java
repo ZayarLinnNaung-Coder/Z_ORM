@@ -6,6 +6,7 @@ import org.z_orm.DDLType;
 import org.z_orm.internal.EntityManager;
 
 import java.sql.Connection;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -23,4 +24,5 @@ public abstract class QueryExecutorService {
         return new EntityManager().loadAllEntities();
     }
 
+    public abstract <T> List<T> selectAll(Class<T> targetEntity);
 }

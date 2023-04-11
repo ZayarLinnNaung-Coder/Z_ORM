@@ -10,9 +10,11 @@ import org.z_orm.query.executer.QueryExecutorService;
 
 import java.io.Serializable;
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 
 @Builder
-public class DBConnectionImpl implements DBConnection {
+public class DBConnectionImpl<T> implements DBConnection {
 
     private final ConfigurationContext configurationContext;
     private final Connection connection;
@@ -37,8 +39,16 @@ public class DBConnectionImpl implements DBConnection {
     }
 
     @Override
-    public Serializable selectAll(Class targetEntity) {
-        return null;
+    public <T> List<T> selectAll(Class<T> targetEntity) {
+        List<T> resultList = null;
+        try {
+            queryExecutorService.setConnection(connection);
+            resultList = queryExecutorService.selectAll(targetEntity);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultList;
     }
 
     public Logger logger(){

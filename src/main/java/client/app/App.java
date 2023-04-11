@@ -6,6 +6,7 @@ import org.z_orm.*;
 import org.z_orm.configuration.Configuration;
 import org.z_orm.configuration.ConfigurationContext;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class App {
@@ -54,15 +55,21 @@ public class App {
     }
 
     private static void selectAll(DBConnection dbConnection) {
-        System.out.println("SELECTING ALL");
-        dbConnection.selectAll(Student.class);
-        dbConnection.selectAll(Teacher.class);
+        List<Student> studentList = dbConnection.selectAll(Student.class);
+        studentList.forEach(student -> {
+            System.out.println(student.getFirstName());
+        });
+
+        List<Teacher> teacherList = dbConnection.selectAll(Teacher.class);
+        teacherList.forEach(teacher -> {
+            System.out.println(teacher);
+        });
     }
 
     private static ConfigurationContext getConfigurationContext() {
         ConfigurationContext configurationContext = ConfigurationContext.getInstance();
 //        configurationContext.setShowSql(true);
-        configurationContext.setDdlType(DDLType.CREATE);
+        configurationContext.setDdlType(DDLType.UPDATE);
         configurationContext.setDialectType(DialectType.MySQLDialect);
         configurationContext.setDbInfo(getDBInfo());
 

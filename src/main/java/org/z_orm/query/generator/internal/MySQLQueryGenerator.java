@@ -141,6 +141,16 @@ public class MySQLQueryGenerator implements QueryGenerator {
         return builder.toString();
     }
 
+    @Override
+    public String generateSelectAllQuery(Class targetEntity) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("SELECT ");
+        concatAllColumns(targetEntity.getDeclaredFields(), builder);
+        builder.append(" FROM ");
+        builder.append(targetEntity.getSimpleName());
+        return builder.toString();
+    }
+
     private void appendPrimaryKeyConstraint(StringBuilder builder, Field f) {
         builder.append("PRIMARY KEY (`");
         builder.append(f.getName());
