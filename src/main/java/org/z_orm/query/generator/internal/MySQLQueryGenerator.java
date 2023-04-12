@@ -48,6 +48,32 @@ public class MySQLQueryGenerator implements QueryGenerator {
     }
 
     @Override
+    public String generateUpdateByIdQuery(Object o, String id) {
+
+        StringBuilder builder = new StringBuilder();
+
+        builder.append("UPDATE ");
+        builder.append(o.getClass().getSimpleName());
+        builder.append(" SET ");
+
+        for (Field field : o.getClass().getDeclaredFields()) {
+            builder.append(field.getName());
+            builder.append(" = ");
+            builder.append("x");
+            builder.append(",");
+        }
+        builder.replace(builder.length() - 1, builder.length(), "");
+
+        builder.append(" WHERE ");
+        builder.append("id = ");
+        builder.append(id);
+
+        logger.info(builder.toString());
+
+        return builder.toString();
+    }
+
+    @Override
     public String generateCreateTableQuery(Class entityClass) {
         String dataTypeName;
 
@@ -143,12 +169,34 @@ public class MySQLQueryGenerator implements QueryGenerator {
 
     @Override
     public String generateSelectAllQuery(Class targetEntity) {
+        return selectAllQueryBuilder(targetEntity).toString();
+    }
+
+    @Override
+    public String generateFindByIdQuery(Class<?> entityClass, Object primaryKey) {
+        StringBuilder builder = selectAllQueryBuilder(entityClass);
+        builder.append(" WHERE ");
+        for (Field field : entityClass.getDeclaredFields()) {
+            Id idAnnotation = field.getAnnotation(Id.class);
+            if(idAnnotation != null){
+                Column columnAnnotation = field.getAnnotation(Column.class);
+                String idColumnName = StringUtils.isNullOrEmpty(columnAnnotation.name()) ? field.getName(): columnAnnotation.name();
+                builder.append(idColumnName);
+                builder.append(" = ");
+                builder.append(primaryKey);
+            }
+        }
+        return builder.toString();
+    }
+
+    private StringBuilder selectAllQueryBuilder(Class targetEntity){
         StringBuilder builder = new StringBuilder();
         builder.append("SELECT ");
         concatAllColumns(targetEntity.getDeclaredFields(), builder);
         builder.append(" FROM ");
         builder.append(targetEntity.getSimpleName());
-        return builder.toString();
+
+        return builder;
     }
 
     private void appendPrimaryKeyConstraint(StringBuilder builder, Field f) {

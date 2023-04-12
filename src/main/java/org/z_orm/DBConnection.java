@@ -1,10 +1,16 @@
 package org.z_orm;
 
-import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 public interface DBConnection {
     Transaction getTransaction();
-    Serializable save(Object o);
-    <T> List<T> selectAll(Class<T> entityClass);
+
+    Object save(Object o);
+
+    <T> List<T> selectAll(Class entityClass);
+
+    Object updateById(Object o, String id);
+
+    <T> Optional<T> findById(Class entityClass, Object primaryKey);
 }

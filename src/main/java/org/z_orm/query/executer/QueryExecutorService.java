@@ -7,6 +7,7 @@ import org.z_orm.internal.EntityManager;
 
 import java.sql.Connection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Getter
@@ -16,13 +17,17 @@ public abstract class QueryExecutorService {
     private DDLType ddlType;
     private Connection connection;
 
-    public abstract void init();
-
-    public abstract void save(Object o);
-
     public Set<Class> loadAllEntities(){
         return new EntityManager().loadAllEntities();
     }
 
+    public abstract void init();
+
+    public abstract Object save(Object o);
+
+    public abstract Object update(Object o, String id);
+
     public abstract <T> List<T> selectAll(Class<T> targetEntity);
+
+    public abstract <T> Optional<T> findById(Class<T> targetEntity, Object primaryKey);
 }

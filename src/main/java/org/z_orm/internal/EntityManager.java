@@ -15,8 +15,7 @@ public class EntityManager {
     public Set<Class> loadAllEntities(){
         Set<Class> classSet = new LinkedHashSet<>();
 
-        new Reflections("client.app.model").getTypesAnnotatedWith(Entity.class).forEach(c -> {
-
+        new Reflections("client.appRepoBased.model").getTypesAnnotatedWith(Entity.class).forEach(c -> {
             try {
                 for (CtField declaredField : ClassPool.getDefault().getCtClass(c.getName()).getDeclaredFields()) {
                     // Add default @Column to all declared fields

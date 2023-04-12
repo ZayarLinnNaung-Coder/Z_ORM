@@ -4,7 +4,11 @@ import org.z_orm.DBConnectionFactory;
 import org.z_orm.internal.DBConnectionFactoryImpl;
 
 public class Configuration {
+
     private ConfigurationContext configurationContext;
+
+    public Configuration(){
+    }
 
     public Configuration configurationContext(ConfigurationContext configurationContext){
         this.configurationContext = configurationContext;

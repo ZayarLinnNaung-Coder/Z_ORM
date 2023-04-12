@@ -34,6 +34,8 @@ public class App {
                     break;
                 case "a":
                     selectAll(dbConnection);
+                case "u":
+                    updateById(dbConnection);
                     break;
             }
         }while (!"q:".equals(ans));
@@ -46,24 +48,36 @@ public class App {
         student.setFirstName("Zayar");
         student.setLastName("Linn Naung");
         student.setEmail("");
-        dbConnection.save(student);
+        student = (Student) dbConnection.save(student);
+        System.out.println(student);
 
         Teacher teacher = new Teacher();
         teacher.setName("Zayar Linn Naung");
         teacher.setAge(50);
-        dbConnection.save(teacher);
+        teacher = (Teacher) dbConnection.save(teacher);
+        System.out.println(teacher);
     }
 
     private static void selectAll(DBConnection dbConnection) {
         List<Student> studentList = dbConnection.selectAll(Student.class);
         studentList.forEach(student -> {
-            System.out.println(student.getFirstName());
+            System.out.println(student);
         });
 
         List<Teacher> teacherList = dbConnection.selectAll(Teacher.class);
         teacherList.forEach(teacher -> {
             System.out.println(teacher);
         });
+    }
+
+    private static void updateById(DBConnection dbConnection) {
+
+        Student student = new Student();
+        student.setFirstName("Zayar");
+        student.setLastName("Linn Naung");
+        student.setEmail("");
+
+        dbConnection.updateById(student, "5");
     }
 
     private static ConfigurationContext getConfigurationContext() {

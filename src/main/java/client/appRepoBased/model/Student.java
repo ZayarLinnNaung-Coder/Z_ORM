@@ -1,4 +1,4 @@
-package client.app.model;
+package client.appRepoBased.model;
 
 import lombok.Getter;
 import lombok.Setter;

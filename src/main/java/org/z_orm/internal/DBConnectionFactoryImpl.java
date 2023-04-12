@@ -18,8 +18,8 @@ import java.sql.SQLException;
 public class DBConnectionFactoryImpl implements DBConnectionFactory {
 
     private final ConfigurationContext configurationContext;
-    private Connection connection;
     private final QueryExecutorService queryExecutorService;
+    private Connection connection;
 
     @Override
     public DBConnection getCurrentDBConnection() {
