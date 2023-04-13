@@ -15,7 +15,7 @@ import java.util.Set;
 public abstract class QueryExecutorService {
 
     private DDLType ddlType;
-    private Connection connection;
+    protected Connection connection;
 
     public Set<Class> loadAllEntities(){
         return new EntityManager().loadAllEntities();
@@ -25,9 +25,11 @@ public abstract class QueryExecutorService {
 
     public abstract Object save(Object o);
 
-    public abstract Object update(Object o, String id);
+    public abstract Object updateById(Object o, String id);
 
     public abstract <T> List<T> selectAll(Class<T> targetEntity);
 
     public abstract <T> Optional<T> findById(Class<T> targetEntity, Object primaryKey);
+
+    public abstract void deleteById(Class targetEntity, String id);
 }

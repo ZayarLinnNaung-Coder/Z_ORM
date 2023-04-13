@@ -38,8 +38,6 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
     @Override
     public Object save(Object o) {
         try {
-
-            Connection connection = getConnection();
             String queryString = queryGenerator.generateSaveQuery(o);
             PreparedStatement stmt = connection.prepareStatement(queryString, Statement.RETURN_GENERATED_KEYS);
             stmt.execute();
@@ -67,11 +65,16 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
     }
 
     @Override
-    public Object update(Object o, String id) {
-
-        Connection connection = getConnection();
+    public Object updateById(Object o, String id) {
         String queryString = queryGenerator.generateUpdateByIdQuery(o, id);
+        logger.info(queryString);
 
+        try {
+            PreparedStatement stmt = connection.prepareStatement(queryString);
+            stmt.executeUpdate();
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
+        }
         return o;
     }
 
@@ -80,7 +83,6 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
         List<T> resultList = new ArrayList<>();
 
         try{
-            Connection connection = getConnection();
             String queryString = queryGenerator.generateSelectAllQuery(targetEntity);
             logger.info(queryString);
             PreparedStatement stmt = connection.prepareStatement(queryString);
@@ -104,12 +106,10 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
         T result = null;
 
         try {
-            Connection connection = getConnection();
             String queryString = queryGenerator.generateFindByIdQuery(entityClass, primaryKey);
             logger.info(queryString);
-            PreparedStatement stmt = null;
 
-            stmt = connection.prepareStatement(queryString);
+            PreparedStatement stmt = connection.prepareStatement(queryString);
             ResultSet resultSet = stmt.executeQuery();
             boolean dataExists = resultSet.next();
             if(dataExists){
@@ -120,6 +120,20 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
         }
 
         return Optional.ofNullable(result);
+    }
+
+    @Override
+    public void deleteById(Class entityClass, String id) {
+        String queryString = queryGenerator.generateDeleteByIdQuery(entityClass, id);
+        logger.info(queryString);
+
+        try {
+            PreparedStatement stmt = connection.prepareStatement(queryString);
+            stmt.executeUpdate();
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
+        }
+
     }
 
     private <T> T getObjectFromResultSet(Class<T> targetEntity, ResultSet resultSet){

@@ -6,7 +6,7 @@ import org.z_orm.configuration.ConfigurationContext;
 import org.z_orm.exception.InvalidDialectException;
 import org.z_orm.logging.logger.ConsoleLogger;
 import org.z_orm.logging.logger.Logger;
-import org.z_orm.query.AbstractQueryFactory;
+import org.z_orm.query.QueryFactory;
 import org.z_orm.query.MySQLQueryFactory;
 import org.z_orm.query.executer.QueryExecutorService;
 
@@ -24,7 +24,7 @@ public class DBConnectionFactoryImpl implements DBConnectionFactory {
     @Override
     public DBConnection getCurrentDBConnection() {
         DBInfo dbInfo = configurationContext.getDbInfo();
-        AbstractQueryFactory queryFactory = null;
+        QueryFactory queryFactory = null;
         QueryExecutorService queryExecutorService = null;
 
         try {
@@ -57,8 +57,8 @@ public class DBConnectionFactoryImpl implements DBConnectionFactory {
                 .build();
     }
 
-    private AbstractQueryFactory createQueryFactory(DialectType dialectType){
-        AbstractQueryFactory queryFactory = null;
+    private QueryFactory createQueryFactory(DialectType dialectType){
+        QueryFactory queryFactory = null;
         try{
             switch (dialectType){
                 case MySQLDialect:

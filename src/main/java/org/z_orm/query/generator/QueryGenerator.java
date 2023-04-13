@@ -12,4 +12,6 @@ public interface QueryGenerator {
     String generateSelectAllQuery(Class targetEntity);
 
     String generateFindByIdQuery(Class<?> entityClass, Object primaryKey);
+
+    String generateDeleteByIdQuery(Class targetEntity, String id);
 }

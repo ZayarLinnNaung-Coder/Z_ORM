@@ -13,4 +13,6 @@ public interface DBConnection {
     Object updateById(Object o, String id);
 
     <T> Optional<T> findById(Class entityClass, Object primaryKey);
+
+    void deleteById(Class entityClass, String id);
 }

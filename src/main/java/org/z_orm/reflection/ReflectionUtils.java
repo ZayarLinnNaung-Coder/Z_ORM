@@ -7,8 +7,7 @@ import java.lang.reflect.Method;
 
 public class ReflectionUtils {
 
-    public static Object invokeGetter(Object obj, String variableName)
-    {
+    public static Object invokeGetter(Object obj, String variableName) {
         Object result = null;
         try {
             PropertyDescriptor pd = new PropertyDescriptor(variableName, obj.getClass());
@@ -18,20 +17,17 @@ public class ReflectionUtils {
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | IntrospectionException e) {
             e.printStackTrace();
         }
+
         return result;
     }
 
-    public static void invokeSetter(Object obj, String propertyName, Object variableValue)
-    {
+    public static void invokeSetter(Object obj, String propertyName, Object variableValue) {
         try {
             PropertyDescriptor pd = new PropertyDescriptor(propertyName, obj.getClass());
             Method setter = pd.getWriteMethod();
-            try {
-                setter.invoke(obj,variableValue);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        } catch (IntrospectionException e) {
+            setter.invoke(obj,variableValue);
+
+        } catch (IntrospectionException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
     }

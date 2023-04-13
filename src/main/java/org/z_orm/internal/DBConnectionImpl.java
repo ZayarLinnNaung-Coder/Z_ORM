@@ -46,7 +46,7 @@ public class DBConnectionImpl<T> implements DBConnection {
     @Override
     public Object updateById(Object o, String id) {
         queryExecutorService.setConnection(connection);
-        queryExecutorService.update(o, id);
+        queryExecutorService.updateById(o, id);
         return null;
     }
 
@@ -54,6 +54,12 @@ public class DBConnectionImpl<T> implements DBConnection {
     public <T> Optional<T> findById(Class entityClass, Object primaryKey) {
         queryExecutorService.setConnection(connection);
         return queryExecutorService.findById(entityClass, primaryKey);
+    }
+
+    @Override
+    public void deleteById(Class entityClass, String id) {
+        queryExecutorService.setConnection(connection);
+        queryExecutorService.deleteById(entityClass, id);
     }
 
     public Logger logger(){

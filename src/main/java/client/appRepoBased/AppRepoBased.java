@@ -2,33 +2,46 @@ package client.appRepoBased;
 
 import client.appRepoBased.model.Student;
 import client.appRepoBased.repository.StudentRepository;
+import client.appRepoBased.service.StudentService;
 import org.z_orm.DBInfo;
 import org.z_orm.DDLType;
 import org.z_orm.DialectType;
 import org.z_orm.configuration.ConfigurationContext;
 
 import java.util.List;
-import java.util.Optional;
 
 public class AppRepoBased {
 
     public static void main(String[] args) {
         initContext();
-        StudentRepository studentRepository = new StudentRepository(Student.class);
+        StudentRepository studentRepository = new StudentRepository();
 
 //        Student student = new Student();
+//        student.setId(10L);
 //        student.setFirstName("Zayar");
 //        student.setLastName("Linn Naung");
 //        student.setEmail("");
 //        student.setAge(23);
+//
+//        studentRepository.delete(student);
+
 //        student = studentRepository.save(student);
 //        System.out.println("-> " + student);
 
 //        List<Student> x = studentRepository.findAll();
 //        x.forEach(student -> System.out.println(student));
 
-        Optional<Student> x = studentRepository.findById(90L);
-        System.out.println(x);
+//        Optional<Student> y = studentRepository.findById(6L);
+//        System.out.println(y);
+
+        StudentService studentService = new StudentService();
+
+        Student student = new Student();
+        student.setFirstName("Zayar");
+        student.setLastName("Linn Naung");
+        student.setEmail("");
+        student.setAge(23);
+        studentService.doCustomTransaction(student);
 
     }
 
@@ -40,11 +53,11 @@ public class AppRepoBased {
     }
 
     private static DBInfo getDBInfo(){
-        return DBInfo.builder()
-                .driverClass("com.mysql.cj.jdbc.Driver")
-                .url("jdbc:mysql://localhost:3306/Z_ORM?useSSL=false&amp")
-                .username("root")
-                .password("Zayar2142000")
-                .build();
+        DBInfo dbInfo = new DBInfo();
+        dbInfo.setDriverClass("com.mysql.cj.jdbc.Driver");
+        dbInfo.setUrl("jdbc:mysql://localhost:3306/Z_ORM?useSSL=false&amp");
+        dbInfo.setUsername("root");
+        dbInfo.setPassword("Zayar2142000");
+        return dbInfo;
     }
 }

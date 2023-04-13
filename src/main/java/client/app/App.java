@@ -91,11 +91,11 @@ public class App {
     }
 
     private static DBInfo getDBInfo(){
-        return DBInfo.builder()
-                .driverClass("com.mysql.cj.jdbc.Driver")
-                .url("jdbc:mysql://localhost:3306/Z_ORM?useSSL=false&amp")
-                .username("root")
-                .password("Zayar2142000")
-                .build();
+        DBInfo dbInfo = new DBInfo();
+        dbInfo.setDriverClass("com.mysql.cj.jdbc.Driver");
+        dbInfo.setUrl("jdbc:mysql://localhost:3306/Z_ORM?useSSL=false&amp");
+        dbInfo.setUsername("root");
+        dbInfo.setPassword("Zayar2142000");
+        return dbInfo;
     }
 }

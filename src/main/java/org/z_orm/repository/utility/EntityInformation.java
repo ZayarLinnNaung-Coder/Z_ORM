@@ -9,10 +9,6 @@ public class EntityInformation<T, ID> {
 
     private Class<?> entityType;
 
-    public EntityInformation(Class<?> entityType){
-        this.entityType = entityType;
-    }
-
     public boolean isNew(T entity){
         return getId(entity) == null;
     }
@@ -26,8 +22,11 @@ public class EntityInformation<T, ID> {
         return null;
     }
 
-    public Class<?> getEntityType(){
+    public Class<?> getEntityType() {
         return entityType;
     }
 
+    public void setEntityType(Class<?> entityType) {
+        this.entityType = entityType;
+    }
 }

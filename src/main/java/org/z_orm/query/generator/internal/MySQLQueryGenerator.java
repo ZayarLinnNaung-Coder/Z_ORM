@@ -7,6 +7,7 @@ import org.z_orm.logging.logger.Logger;
 import org.z_orm.logging.logger.LoggerFactory;
 import org.z_orm.query.generator.QueryGenerator;
 import org.z_orm.query.generator.SQLConstraintType;
+import org.z_orm.reflection.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -57,9 +58,15 @@ public class MySQLQueryGenerator implements QueryGenerator {
         builder.append(" SET ");
 
         for (Field field : o.getClass().getDeclaredFields()) {
-            builder.append(field.getName());
+            builder.append(getColumnName(field));
             builder.append(" = ");
-            builder.append("x");
+            Object value = ReflectionUtils.invokeGetter(o, field.getName());
+
+            // if value is string: 'Zayar Linn Naung'
+            String appendQuote = String.class.equals(value.getClass())? "'": "";
+            builder.append(appendQuote);
+            builder.append(value);
+            builder.append(appendQuote);
             builder.append(",");
         }
         builder.replace(builder.length() - 1, builder.length(), "");
@@ -67,8 +74,6 @@ public class MySQLQueryGenerator implements QueryGenerator {
         builder.append(" WHERE ");
         builder.append("id = ");
         builder.append(id);
-
-        logger.info(builder.toString());
 
         return builder.toString();
     }
@@ -179,11 +184,26 @@ public class MySQLQueryGenerator implements QueryGenerator {
         for (Field field : entityClass.getDeclaredFields()) {
             Id idAnnotation = field.getAnnotation(Id.class);
             if(idAnnotation != null){
-                Column columnAnnotation = field.getAnnotation(Column.class);
-                String idColumnName = StringUtils.isNullOrEmpty(columnAnnotation.name()) ? field.getName(): columnAnnotation.name();
-                builder.append(idColumnName);
+                builder.append(getColumnName(field));
                 builder.append(" = ");
                 builder.append(primaryKey);
+            }
+        }
+        return builder.toString();
+    }
+
+    @Override
+    public String generateDeleteByIdQuery(Class targetEntity, String id) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("DELETE FROM ");
+        builder.append(targetEntity.getSimpleName());
+        builder.append(" WHERE ");
+        for (Field field : targetEntity.getDeclaredFields()) {
+            Id idAnnotation = field.getAnnotation(Id.class);
+            if(idAnnotation != null){
+                builder.append(getColumnName(field));
+                builder.append(" = ");
+                builder.append(id);
             }
         }
         return builder.toString();
@@ -223,15 +243,18 @@ public class MySQLQueryGenerator implements QueryGenerator {
 
     private void concatAllColumns(Field[] fields, StringBuilder builder) {
         for (Field field : fields) {
-            Column columnAnnotation = field.getAnnotation(Column.class);
-            if(StringUtils.isNullOrEmpty(columnAnnotation.name())){
-                builder.append(field.getName());
-            } else{
-                builder.append(columnAnnotation.name());
-            }
+            builder.append(getColumnName(field));
             builder.append(",");
         }
         builder.replace(builder.length() - 1, builder.length(), "");
     }
 
+    private String getColumnName(Field field){
+        Column columnAnnotation = field.getAnnotation(Column.class);
+        if(StringUtils.isNullOrEmpty(columnAnnotation.name())){
+            return field.getName();
+        } else{
+            return columnAnnotation.name();
+        }
+    }
 }

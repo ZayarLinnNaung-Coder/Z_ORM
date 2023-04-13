@@ -5,10 +5,12 @@ import java.util.Optional;
 
 public interface ZRepository<T, ID> {
 
-    <S extends T> S save(S entity);
+    T save(T entity);
 
-    <S extends T> List<S> findAll();
+    List<T> findAll();
 
     Optional<T> findById(ID id);
+
+    void delete(T entity);
 
 }
