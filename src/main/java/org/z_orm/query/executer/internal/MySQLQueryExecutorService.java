@@ -11,11 +11,8 @@ import org.z_orm.query.generator.QueryGenerator;
 import org.z_orm.query.generator.internal.MySQLQueryGenerator;
 import org.z_orm.reflection.ReflectionUtils;
 
-import java.beans.IntrospectionException;
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

@@ -40,7 +40,6 @@ public class App {
             }
         }while (!"q:".equals(ans));
 
-
     }
 
     private static void save(DBConnection dbConnection) {

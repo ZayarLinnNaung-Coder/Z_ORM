@@ -15,6 +15,7 @@ import java.util.Set;
 public abstract class QueryExecutorService {
 
     private DDLType ddlType;
+    private String connectionUUID;
     protected Connection connection;
 
     public Set<Class> loadAllEntities(){

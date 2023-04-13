@@ -13,6 +13,7 @@ import org.z_orm.query.executer.QueryExecutorService;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.UUID;
 
 @Builder
 public class DBConnectionFactoryImpl implements DBConnectionFactory {
@@ -42,6 +43,7 @@ public class DBConnectionFactoryImpl implements DBConnectionFactory {
             queryExecutorService = queryFactory.createQueryExecutorService();
             queryExecutorService.setDdlType(configurationContext.getDdlType());
             queryExecutorService.setConnection(connection);
+            queryExecutorService.setConnectionUUID(UUID.randomUUID().toString());
             queryExecutorService.init();
 
         } catch (SQLException throwable) {

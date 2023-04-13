@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public class AbstractZRepository<T,ID> implements ZRepository<T,ID> {
 
-    private final DBConnection dbConnection;
+    private static DBConnection dbConnection;
     private final ConfigurationContext configurationContext;
     private final EntityInformation<T, ID> entityInformation;
 
@@ -22,11 +22,11 @@ public class AbstractZRepository<T,ID> implements ZRepository<T,ID> {
         this.entityInformation = new EntityInformation<>();
         this.entityInformation.setEntityType(generateEntityType());
 
-        DBConnectionFactory connectionFactory = new Configuration()
-                .configurationContext(configurationContext)
-                .buildDBConnectionFactory();
-
-        dbConnection = connectionFactory.getCurrentDBConnection();
+        if(this.dbConnection == null){
+            dbConnection = new Configuration()
+                    .configurationContext(configurationContext)
+                    .buildDBConnectionFactory().getCurrentDBConnection();
+        }
     }
 
     @Override
