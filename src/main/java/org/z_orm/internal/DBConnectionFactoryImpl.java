@@ -1,6 +1,7 @@
 package org.z_orm.internal;
 
 import lombok.Builder;
+import lombok.Getter;
 import org.z_orm.*;
 import org.z_orm.configuration.ConfigurationContext;
 import org.z_orm.exception.InvalidDialectException;
@@ -16,40 +17,57 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 @Builder
+@Getter
 public class DBConnectionFactoryImpl implements DBConnectionFactory {
 
     private final ConfigurationContext configurationContext;
-    private final QueryExecutorService queryExecutorService;
+    private static DBInfo dbInfo;
     private Connection connection;
+    private QueryFactory queryFactory;
+    private QueryExecutorService queryExecutorService;
 
     @Override
-    public DBConnection getCurrentDBConnection() {
-        DBInfo dbInfo = configurationContext.getDbInfo();
-        QueryFactory queryFactory = null;
-        QueryExecutorService queryExecutorService = null;
+    public void init() {
+            dbInfo = configurationContext.getDbInfo();
 
-        try {
             logger().info("Initializing Database Connection");
             logger().info("Url - " + dbInfo.getUrl());
             logger().info("Username - " + dbInfo.getUsername());
             logger().info("Password - " + dbInfo.getPassword());
 
-            // get connection from driverManager
-            connection = DriverManager.getConnection(dbInfo.getUrl(), dbInfo.getUsername(), dbInfo.getPassword());
-
             queryFactory = createQueryFactory(configurationContext.getDialectType());
+    }
 
+    @Override
+    public QueryExecutorService createNewQueryExecutorService(){
+        try {
             // create query executor service
             queryExecutorService = queryFactory.createQueryExecutorService();
             queryExecutorService.setDdlType(configurationContext.getDdlType());
+            queryFactory = createQueryFactory(configurationContext.getDialectType());
+            connection = DriverManager.getConnection(dbInfo.getUrl(), dbInfo.getUsername(), dbInfo.getPassword());
+
             queryExecutorService.setConnection(connection);
-            queryExecutorService.setConnectionUUID(UUID.randomUUID().toString());
-            queryExecutorService.init();
 
         } catch (SQLException throwable) {
             throwable.printStackTrace();
-        } finally {
-            logger().info("Connection established...");
+        }
+
+        return queryExecutorService;
+    }
+
+    @Override
+    public DBConnection getDBConnection() {
+
+        try {
+            // get connection from driverManager
+            connection = DriverManager.getConnection(dbInfo.getUrl(), dbInfo.getUsername(), dbInfo.getPassword());
+
+            queryExecutorService.setConnection(connection);
+            queryExecutorService.setConnectionUUID(UUID.randomUUID().toString());
+
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
         }
 
         return DBConnectionImpl.builder()

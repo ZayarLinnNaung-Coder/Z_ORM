@@ -3,9 +3,8 @@ package client.appRepoBased.model;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.z_orm.annotation.Column;
-import org.z_orm.annotation.Entity;
-import org.z_orm.annotation.Id;
+import org.z_orm.annotation.*;
+import org.z_orm.persistence.CascadeType;
 
 @Entity
 @Getter

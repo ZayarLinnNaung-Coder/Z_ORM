@@ -19,7 +19,7 @@ public class App {
                 .configurationContext(configurationContext)
                 .buildDBConnectionFactory();
 
-        DBConnection dbConnection = connectionFactory.getCurrentDBConnection();
+        DBConnection dbConnection = connectionFactory.getDBConnection();
 
         String ans;
         do{

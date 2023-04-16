@@ -1,5 +1,9 @@
 package org.z_orm;
 
+import org.z_orm.query.executer.QueryExecutorService;
+
 public interface DBConnectionFactory {
-    DBConnection getCurrentDBConnection();
+    void init();
+    DBConnection getDBConnection();
+    QueryExecutorService createNewQueryExecutorService();
 }

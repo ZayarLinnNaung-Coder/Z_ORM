@@ -1,8 +1,11 @@
 package org.z_orm.query.generator.internal;
 
+import client.appRepoBased.model.Student;
+import client.appRepoBased.model.Teacher;
 import com.mysql.cj.util.StringUtils;
-import org.z_orm.annotation.Column;
-import org.z_orm.annotation.Id;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.z_orm.annotation.*;
+import org.z_orm.exception.NotKnownDataTypeException;
 import org.z_orm.logging.logger.Logger;
 import org.z_orm.logging.logger.LoggerFactory;
 import org.z_orm.query.generator.QueryGenerator;
@@ -95,51 +98,86 @@ public class MySQLQueryGenerator implements QueryGenerator {
             Id idAnnotation = field.getAnnotation(Id.class);
             Column columnAnnotation = field.getAnnotation(Column.class);
 
-            if(columnAnnotation != null){
+            if(columnAnnotation != null) {
                 // Process @Column(name)
-                if(StringUtils.isNullOrEmpty(columnAnnotation.name())){
+                if (StringUtils.isNullOrEmpty(columnAnnotation.name())) {
                     builder.append(field.getName());
-                }else{
+                } else {
                     builder.append(columnAnnotation.name());
                 }
-
-                // Process column data type
-                dataTypeName = field.getType().getSimpleName().toLowerCase();
-                if(MySQLUtils.dataTypeMap().containsKey(dataTypeName)) {
-                    // Concat dataTypes
-                    final MySQLDataType mySQLDataType = MySQLUtils.dataTypeMap().get(dataTypeName);
-                    builder.append(" ");
-                    builder.append(mySQLDataType);
-
-                    if(MySQLDataType.CHAR.equals(mySQLDataType) || MySQLDataType.NVARCHAR.equals(mySQLDataType)){
-                        builder.append("(");
-                        builder.append(columnAnnotation.length());
-                        builder.append(")");
+            } else{
+                // considered as the relationship column
+                OneToOne oneToOneAnnotation = field.getAnnotation(OneToOne.class);
+                if(oneToOneAnnotation != null){
+                    JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
+                    if(joinColumnAnnotation != null){
+                        builder.append(joinColumnAnnotation.name());
                     }
                 }
+            }
 
+            // Process column data type
+            dataTypeName = field.getType().getSimpleName().toLowerCase();
+            if(MySQLUtils.dataTypeMap().containsKey(dataTypeName)) {
+                // Concat dataTypes
+                final MySQLDataType mySQLDataType = MySQLUtils.dataTypeMap().get(dataTypeName);
+                builder.append(" ");
+                builder.append(mySQLDataType);
+
+                if(MySQLDataType.CHAR.equals(mySQLDataType) || MySQLDataType.NVARCHAR.equals(mySQLDataType)){
+                    builder.append("(");
+                    builder.append(columnAnnotation.length());
+                    builder.append(")");
+                }
+            } else{
+                // May be relationShip with other entities
+                try {
+
+                    OneToOne oneToOneAnnotation = field.getAnnotation(OneToOne.class);
+                    JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
+                    Class<?> relationshipClass = field.getType();
+
+                    dataTypeName = ReflectionUtils.getType(relationshipClass, "id").getSimpleName().toLowerCase();
+                    if(MySQLUtils.dataTypeMap().containsKey(dataTypeName)){
+                        final MySQLDataType mySQLDataType = MySQLUtils.dataTypeMap().get(dataTypeName);
+                        builder.append(" ");
+                        builder.append(mySQLDataType);
+                    }else{
+                        throw new NotKnownDataTypeException(dataTypeName + " is not a known dataType");
+                    }
+
+                } catch (NotKnownDataTypeException e) {
+                    e.printStackTrace();
+                    System.exit(0);
+                }
+            }
+
+            if(columnAnnotation != null){
                 // Process @Column(nullable)
                 if (!columnAnnotation.nullable() || idAnnotation != null){
                     builder.append(" NOT NULL");
                 }else{
                     builder.append(" NULL");
                 }
+            }
 
-                // Process @Id
-                if(idAnnotation != null){
-                    builder.append(" AUTO_INCREMENT");
-                    constraintTypeFieldMap.put(PRIMARY_KEY, Set.of(field));
-                }
+            // Process @Id
+            if(idAnnotation != null){
+                builder.append(" AUTO_INCREMENT");
+                constraintTypeFieldMap.put(PRIMARY_KEY, Set.of(field));
+            }
 
+            if(columnAnnotation != null){
                 // Process @Column(unique)
                 if(columnAnnotation.unique()){
                     uniqueConstraintFields.add(field);
                     constraintTypeFieldMap.put(UNIQUE, uniqueConstraintFields);
                 }
-
-                builder.append(",");
             }
+
+            builder.append(",");
         }
+
 
         constraintTypeFieldMap.forEach((sqlConstraintType, fields) -> {
             fields.forEach(f -> {
@@ -207,6 +245,69 @@ public class MySQLQueryGenerator implements QueryGenerator {
             }
         }
         return builder.toString();
+    }
+
+    @Override
+    public String generateAddFKConstraintQuery(Class entity, Field field) {
+
+        JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("alter table ");
+        sb.append(entity.getSimpleName());
+        sb.append(" add constraint ");
+        sb.append(generateRandomFKConstraint(entity, field));
+        sb.append(" foreign key ");
+        sb.append("(");
+        if(joinColumnAnnotation != null){
+            sb.append(joinColumnAnnotation.name());
+        }
+        sb.append(") ");
+        sb.append("references ");
+        sb.append(field.getType().getSimpleName());
+        sb.append("(");
+        if(joinColumnAnnotation != null){
+            sb.append(joinColumnAnnotation.referencedColumnName());
+        }
+        sb.append(") ");
+        return sb.toString();
+    }
+
+    @Override
+    public String generateGetAllConstraintsFromTableQuery(String databaseName, String tableName) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SELECT TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME, CONSTRAINT_NAME ");
+        sb.append("FROM ");
+        sb.append("INFORMATION_SCHEMA.KEY_COLUMN_USAGE ");
+        sb.append("WHERE ");
+        sb.append("REFERENCED_TABLE_SCHEMA = ");
+        sb.append("'");
+        sb.append(databaseName);
+        sb.append("'");
+        sb.append(" AND REFERENCED_TABLE_NAME = ");
+        sb.append("'");
+        sb.append(tableName);
+        sb.append("'");
+        return sb.toString();
+    }
+
+    @Override
+    public String generateDropConstraintQuery(String tableName, String constraintName) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("ALTER TABLE ");
+        sb.append(tableName);
+        sb.append(" DROP FOREIGN KEY ");
+        sb.append(constraintName);
+        return sb.toString();
+    }
+
+    private String generateRandomFKConstraint(Class entity, Field field) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("FK");
+        sb.append(entity.getSimpleName());
+        sb.append(field.getType().getSimpleName());
+        sb.append(RandomStringUtils.randomAlphanumeric(10));
+        return sb.toString();
     }
 
     private StringBuilder selectAllQueryBuilder(Class targetEntity){

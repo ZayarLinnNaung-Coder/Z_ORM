@@ -31,4 +31,17 @@ public class ReflectionUtils {
             e.printStackTrace();
         }
     }
+
+    public static Class<?> getType(Class<?> targetClass, String variableName){
+        Class<?> returnType = null;
+        try {
+            PropertyDescriptor pd = new PropertyDescriptor(variableName, targetClass);
+            returnType = pd.getReadMethod().getReturnType();
+
+        } catch ( IllegalArgumentException | IntrospectionException e) {
+            e.printStackTrace();
+        }
+
+        return returnType;
+    }
 }

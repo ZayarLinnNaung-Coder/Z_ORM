@@ -1,11 +1,15 @@
 package org.z_orm.query.executer.internal;
 
 import com.mysql.cj.util.StringUtils;
+import org.z_orm.DBConnection;
 import org.z_orm.DDLType;
 import org.z_orm.annotation.Column;
 import org.z_orm.annotation.Id;
+import org.z_orm.annotation.JoinColumn;
+import org.z_orm.annotation.OneToOne;
 import org.z_orm.logging.logger.Logger;
 import org.z_orm.logging.logger.LoggerFactory;
+import org.z_orm.persistence.ConstraintInfo;
 import org.z_orm.query.executer.QueryExecutorService;
 import org.z_orm.query.generator.QueryGenerator;
 import org.z_orm.query.generator.internal.MySQLQueryGenerator;
@@ -15,6 +19,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -187,18 +192,59 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
     }
 
     private void initEntities() {
-        // Init tables
         if(DDLType.CREATE.equals(getDdlType())){
-            super.loadAllEntities().forEach(entity -> {
-                Connection connection = getConnection();
-                dropTable(entity, connection);
-                createTable(entity, connection);
+            dropAllEntityTables();
+        }
+
+        // Init tables
+        createAllEntityTables();
+        resolveRelationshipConstraints();
+    }
+
+    private void dropAllEntityTables(){
+        super.loadAllEntities().forEach(entity -> {
+            dropAllConstraints(entity);
+            dropTable(entity, connection);
+        });
+    }
+
+    private void dropAllConstraints(Class entity) {
+        List<ConstraintInfo> constraintInfoList = getAllConstraintsFromTable(entity.getSimpleName());
+        constraintInfoList.forEach(constraintInfo -> {
+            String constraintDropQuery = queryGenerator.generateDropConstraintQuery(constraintInfo.getTableName(), constraintInfo.getConstraintName());
+            logger.info(constraintDropQuery);
+            try {
+                connection.prepareStatement(constraintDropQuery).executeUpdate();
+            } catch (SQLException throwable) {
+                throwable.printStackTrace();
+            }
+        });
+    }
+
+    private void createAllEntityTables(){
+        super.loadAllEntities().forEach(entity -> {
+            createTable(entity, connection);
+        });
+    }
+
+    private void resolveRelationshipConstraints() {
+        super.loadAllEntities().forEach(entity -> {
+            Arrays.stream(entity.getDeclaredFields()).filter(field -> field.getAnnotation(OneToOne.class) != null).forEach(field -> {
+                addFKConstraint(entity, field);
             });
-        } else if(DDLType.UPDATE.equals(getDdlType())){
-            super.loadAllEntities().forEach(entity -> {
-                Connection connection = getConnection();
-                createTable(entity, connection);
-            });
+        });
+    }
+
+    private void addFKConstraint(Class entity, Field field) {
+        PreparedStatement stmt;
+
+        try {
+            String queryString = queryGenerator.generateAddFKConstraintQuery(entity, field);
+            logger.info(queryString);
+            stmt = connection.prepareStatement(queryString);
+            stmt.executeUpdate();
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
         }
     }
 
@@ -223,7 +269,39 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
             stmt.executeUpdate();
         } catch (SQLException throwable) {
             throwable.printStackTrace();
+            System.exit(0);
         }
+    }
+
+    public List<ConstraintInfo> getAllConstraintsFromTable(String tableName) {
+        List<ConstraintInfo> constraintInfoList = new ArrayList<>();
+        PreparedStatement stmt;
+        try {
+            String databaseName = connection.getCatalog();
+            String queryString = queryGenerator.generateGetAllConstraintsFromTableQuery(databaseName, tableName);
+            stmt = connection.prepareStatement(queryString);
+            ResultSet resultSet = stmt.executeQuery();
+
+            while (resultSet.next()){
+                String table_name = resultSet.getString("TABLE_NAME");
+                String column_name = resultSet.getString("COLUMN_NAME");
+                String referenced_table_name = resultSet.getString("REFERENCED_TABLE_NAME");
+                String referenced_column_name = resultSet.getString("REFERENCED_COLUMN_NAME");
+                String constraint_name = resultSet.getString("CONSTRAINT_NAME");
+
+                ConstraintInfo constraintInfo = new ConstraintInfo();
+                constraintInfo.setTableName(table_name);
+                constraintInfo.setColumnName(column_name);
+                constraintInfo.setReferencedTableName(referenced_table_name);
+                constraintInfo.setReferencedColumnName(referenced_column_name);
+                constraintInfo.setConstraintName(constraint_name);
+                constraintInfoList.add(constraintInfo);
+            }
+        } catch (SQLException throwable) {
+            throwable.printStackTrace();
+        }
+
+        return constraintInfoList;
     }
 
 }

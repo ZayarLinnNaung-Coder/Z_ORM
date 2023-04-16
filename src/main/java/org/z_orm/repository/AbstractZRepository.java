@@ -13,20 +13,32 @@ import java.util.Optional;
 
 public class AbstractZRepository<T,ID> implements ZRepository<T,ID> {
 
-    private static DBConnection dbConnection;
-    private final ConfigurationContext configurationContext;
-    private final EntityInformation<T, ID> entityInformation;
+    private DBConnection dbConnection;
+    private static ConfigurationContext configurationContext;
+    private static DBConnectionFactory dbConnectionFactory;
+    private EntityInformation<T, ID> entityInformation;
+    private static boolean isInitState = true;
 
     public AbstractZRepository(){
-        this.configurationContext = ConfigurationContext.getInstance();
-        this.entityInformation = new EntityInformation<>();
-        this.entityInformation.setEntityType(generateEntityType());
 
-        if(this.dbConnection == null){
-            dbConnection = new Configuration()
+        // do only one time like Table Creation, ...
+        if(isInitState){
+            configurationContext = ConfigurationContext.getInstance();
+
+            dbConnectionFactory = new Configuration()
                     .configurationContext(configurationContext)
-                    .buildDBConnectionFactory().getCurrentDBConnection();
+                    .buildDBConnectionFactory();
+            dbConnectionFactory.init();
+            dbConnectionFactory.createNewQueryExecutorService().init();
+
+            isInitState = false;
         }
+
+        entityInformation = new EntityInformation<>();
+        entityInformation.setEntityType(generateEntityType());
+
+        dbConnectionFactory.createNewQueryExecutorService();
+        dbConnection = dbConnectionFactory.getDBConnection();
     }
 
     @Override
@@ -54,6 +66,14 @@ public class AbstractZRepository<T,ID> implements ZRepository<T,ID> {
     public void delete(T entity) {
         String id = String.valueOf(entityInformation.getId(entity));
         dbConnection.deleteById(entity.getClass(), id);
+    }
+
+    private void setEntityInformation(EntityInformation<T, ID> entityInformation){
+        this.entityInformation = entityInformation;
+    }
+
+    private EntityInformation<T, ID> getEntityInformation(){
+        return this.entityInformation;
     }
 
     private Class<T> generateEntityType(){
