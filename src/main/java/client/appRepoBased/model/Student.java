@@ -23,4 +23,8 @@ public class Student {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "teacher_id", referencedColumnName = "id")
     private Teacher teacher;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "bag_id", referencedColumnName = "id")
+    private Bag bag;
 }

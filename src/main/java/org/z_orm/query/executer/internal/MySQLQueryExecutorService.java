@@ -13,6 +13,7 @@ import org.z_orm.persistence.ConstraintInfo;
 import org.z_orm.query.executer.QueryExecutorService;
 import org.z_orm.query.generator.QueryGenerator;
 import org.z_orm.query.generator.internal.MySQLQueryGenerator;
+import org.z_orm.query.generator.internal.MySQLUtils;
 import org.z_orm.reflection.ReflectionUtils;
 
 import java.lang.reflect.Field;
@@ -168,9 +169,16 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
             obj = targetEntity.getDeclaredConstructor().newInstance();
 
             for (Field field : targetEntity.getDeclaredFields()) {
-                final Column columnAnnotation = field.getAnnotation(Column.class);
-                String columnName = StringUtils.isNullOrEmpty(columnAnnotation.name()) ? field.getName(): columnAnnotation.name();
+                String columnName = "";
                 Class<?> fieldType = field.getType();
+                final Column columnAnnotation = field.getAnnotation(Column.class);
+
+                if(columnAnnotation != null){
+                    columnName  = StringUtils.isNullOrEmpty(columnAnnotation.name()) ? field.getName(): columnAnnotation.name();
+                }else{
+                    JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
+                    columnName = joinColumnAnnotation.name();
+                }
 
                 Object fieldValue = getFieldValueFromResultSet(fieldType, resultSet, columnName);
                 ReflectionUtils.invokeSetter(obj, field.getName(), fieldValue);
@@ -194,18 +202,13 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
         Object result = null;
 
         try {
-            if(String.class.equals(fieldType)){
-                result = resultSet.getString(columnName);
-            }else if(Character.class.equals(fieldType) || fieldType.equals("char")){
-                result = resultSet.getCharacterStream(columnName);
-            }else if(Integer.class.equals(fieldType) || "int".equals(fieldType.getSimpleName())){
-                result = resultSet.getInt(columnName);
-            }else if("long".equalsIgnoreCase(fieldType.getSimpleName())){
-                result = resultSet.getLong(columnName);
-            }else if("double".equalsIgnoreCase(fieldType.getSimpleName())){
-                result = resultSet.getDouble(columnName);
-            }else if("float".equalsIgnoreCase(fieldType.getSimpleName())){
-                result = resultSet.getFloat(columnName);
+
+            if(MySQLUtils.dataTypeMap().containsKey(fieldType.getSimpleName().toLowerCase())){
+                result = resultSet.getObject(columnName);
+            }else{
+                // considered as the relationship field
+                Object o = resultSet.getObject(columnName);
+                result = findById(fieldType, o).get();
             }
         } catch (SQLException throwable) {
             throwable.printStackTrace();

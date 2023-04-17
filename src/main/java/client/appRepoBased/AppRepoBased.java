@@ -1,7 +1,9 @@
 package client.appRepoBased;
 
+import client.appRepoBased.model.Bag;
 import client.appRepoBased.model.Student;
 import client.appRepoBased.model.Teacher;
+import client.appRepoBased.repository.BagRepository;
 import client.appRepoBased.repository.StudentRepository;
 import client.appRepoBased.repository.TeacherRepository;
 import client.appRepoBased.service.StudentService;
@@ -16,8 +18,10 @@ public class AppRepoBased {
 
     public static void main(String[] args) {
         initContext();
+
         StudentRepository studentRepository = new StudentRepository();
         TeacherRepository teacherRepository = new TeacherRepository();
+        BagRepository bagRepository = new BagRepository();
 
 //        Student student = new Student();
 //        student.setId(10L);
@@ -39,21 +43,28 @@ public class AppRepoBased {
 
 //        StudentService studentService = new StudentService();
 //
-        Teacher teacher = new Teacher();
-        teacher.setId(2L);
-        teacher.setName("Zayar Linn Naung");
-        teacher.setAge(53);
-
-        Student student = new Student();
-        student.setFirstName("Zayar");
-        student.setLastName("Linn Naung");
-        student.setEmail("");
-        student.setAge(23);
-        student.setTeacher(teacher);
-        studentRepository.save(student);
+//        Teacher teacher = new Teacher();
+//        teacher.setName("Zayar Linn Naung");
+//        teacher.setAge(53);
 //
-//        System.out.println(teacherRepository.findAll());
-//        System.out.println(studentRepository.findAll());
+//        Bag bag = new Bag();
+//        bag.setId(2L);
+//        bag.setColor("BLUE");
+//        bag.setPrice("$ 50,000");
+//        bag.setType("_");
+//
+//        Student student = new Student();
+//        student.setFirstName("Zayar");
+//        student.setLastName("Linn Naung");
+//        student.setEmail("");
+//        student.setAge(23);
+//        student.setTeacher(teacher);
+//        student.setBag(bag);
+//        studentRepository.save(student);
+//
+        System.out.println(bagRepository.findAll());
+        System.out.println(teacherRepository.findAll());
+        System.out.println(studentRepository.findAll());
 
     }
 
