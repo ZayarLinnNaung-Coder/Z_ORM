@@ -10,10 +10,11 @@ public class ReflectionUtils {
     public static Object invokeGetter(Object obj, String variableName) {
         Object result = null;
         try {
-            PropertyDescriptor pd = new PropertyDescriptor(variableName, obj.getClass());
-            Method getter = pd.getReadMethod();
-            result = getter.invoke(obj);
-
+            if(obj != null){
+                PropertyDescriptor pd = new PropertyDescriptor(variableName, obj.getClass());
+                Method getter = pd.getReadMethod();
+                result = getter.invoke(obj);
+            }
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | IntrospectionException e) {
             e.printStackTrace();
         }

@@ -42,7 +42,10 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
     @Override
     public Object save(Object o) {
         try {
-            resolveRelationshipData(o);
+            if(o != null){
+                resolveRelationshipData(o);
+            }
+
             String queryString = queryGenerator.generateSaveQuery(o);
             PreparedStatement stmt = connection.prepareStatement(queryString, Statement.RETURN_GENERATED_KEYS);
             stmt.execute();
@@ -75,16 +78,20 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
 
             if(field.getAnnotation(OneToOne.class) != null){
                 Object relationshipObject = ReflectionUtils.invokeGetter(o, field.getName());
-                for (Field declaredField : relationshipObject.getClass().getDeclaredFields()) {
-                    if(declaredField.getAnnotation(Id.class) != null){
-                        idValue = ReflectionUtils.invokeGetter(relationshipObject, declaredField.getName());
+                if(relationshipObject != null){
+                    for (Field declaredField : relationshipObject.getClass().getDeclaredFields()) {
+                        if(declaredField.getAnnotation(Id.class) != null){
+                            idValue = ReflectionUtils.invokeGetter(relationshipObject, declaredField.getName());
+                        }
                     }
                 }
 
-                if(idValue != null){
-                    updateById(relationshipObject, idValue.toString());
-                }else {
-                    save(relationshipObject);
+                if(relationshipObject != null){
+                    if(idValue != null){
+                        updateById(relationshipObject, idValue.toString());
+                    }else {
+                        save(relationshipObject);
+                    }
                 }
             }
 
@@ -93,10 +100,12 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
 
     @Override
     public Object updateById(Object o, String id) {
-        String queryString = queryGenerator.generateUpdateByIdQuery(o, id);
-        logger.info(queryString);
+
+        resolveRelationshipData(o);
 
         try {
+            String queryString = queryGenerator.generateUpdateByIdQuery(o, id);
+            logger.info(queryString);
             PreparedStatement stmt = connection.prepareStatement(queryString);
             stmt.executeUpdate();
         } catch (SQLException throwable) {
@@ -204,8 +213,18 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
 
         try {
 
-            if(MySQLUtils.dataTypeMap().containsKey(fieldType.getSimpleName().toLowerCase())){
-                result = resultSet.getObject(columnName);
+            if(String.class.equals(fieldType)){
+                result = resultSet.getString(columnName);
+            }else if(Character.class.equals(fieldType) || fieldType.equals("char")){
+                result = resultSet.getCharacterStream(columnName);
+            }else if(Integer.class.equals(fieldType) || "int".equals(fieldType.getSimpleName())){
+                result = resultSet.getInt(columnName);
+            }else if("long".equalsIgnoreCase(fieldType.getSimpleName())){
+                result = resultSet.getLong(columnName);
+            }else if("double".equalsIgnoreCase(fieldType.getSimpleName())){
+                result = resultSet.getDouble(columnName);
+            }else if("float".equalsIgnoreCase(fieldType.getSimpleName())){
+                result = resultSet.getFloat(columnName);
             }else{
                 // considered as the relationship field
                 OneToOne oneToOneAnnotation = field.getAnnotation(OneToOne.class);
@@ -213,7 +232,11 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
                 FetchType fetchType = oneToOneAnnotation.fetch();
                 if(FetchType.EAGER.equals(fetchType)){
                     Object o = resultSet.getObject(columnName);
-                    result = findById(fieldType, o).get();
+
+                    final Optional<?> findByIdResultOptional = findById(fieldType, o);
+                    if(findByIdResultOptional.isPresent()){
+                        result = findById(fieldType, o).get();
+                    }
                 }
             }
         } catch (SQLException throwable) {

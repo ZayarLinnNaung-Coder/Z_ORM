@@ -43,28 +43,30 @@ public class AppRepoBased {
 
 //        StudentService studentService = new StudentService();
 //
-//        Teacher teacher = new Teacher();
-//        teacher.setName("Zayar Linn Naung");
-//        teacher.setAge(53);
+        Teacher teacher = new Teacher();
+        teacher.setName("MYA MYA");
+        teacher.setAge(53);
+
+        Bag bag = new Bag();
+        bag.setColor("RED");
+        bag.setPrice("$ 30,000");
+        bag.setType("_");
 //
-//        Bag bag = new Bag();
-//        bag.setId(2L);
-//        bag.setColor("BLUE");
-//        bag.setPrice("$ 50,000");
-//        bag.setType("_");
+        Student student = new Student();
+        student.setId(11L);
+        student.setFirstName("Zayar");
+        student.setLastName("Linn Naung");
+        student.setEmail("");
+        student.setAge(23);
+        student.setTeacher(teacher);
+        student.setBag(bag);
+        studentRepository.save(student);
 //
-//        Student student = new Student();
-//        student.setFirstName("Zayar");
-//        student.setLastName("Linn Naung");
-//        student.setEmail("");
-//        student.setAge(23);
-//        student.setTeacher(teacher);
-//        student.setBag(bag);
-//        studentRepository.save(student);
-//
-        System.out.println(bagRepository.findAll());
-        System.out.println(teacherRepository.findAll());
-        System.out.println(studentRepository.findAll());
+//        System.out.println(bagRepository.findAll());
+//        System.out.println(teacherRepository.findAll());
+//        System.out.println(studentRepository.findAll());
+
+
 
     }
 

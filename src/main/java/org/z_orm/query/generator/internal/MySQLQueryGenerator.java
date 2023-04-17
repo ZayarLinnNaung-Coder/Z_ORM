@@ -13,6 +13,7 @@ import org.z_orm.query.generator.SQLConstraintType;
 import org.z_orm.reflection.ReflectionUtils;
 
 import java.lang.reflect.Field;
+import java.sql.Ref;
 import java.util.*;
 
 import static org.z_orm.query.generator.SQLConstraintType.*;
@@ -35,23 +36,24 @@ public class MySQLQueryGenerator implements QueryGenerator {
             builder.append("VALUES (");
             for (Field field : o.getClass().getDeclaredFields()) {
 
-                String fieldTypeName = field.getType().getSimpleName().toLowerCase();
-
                 field.setAccessible(true);
+                String fieldTypeName = field.getType().getSimpleName().toLowerCase();
                 Object fieldValue = field.get(o);
+
+                String appendQuote = String.class.equals(field.getType()) && fieldValue != null ? "'": "";
                 if(MySQLUtils.dataTypeMap().containsKey(fieldTypeName)){
-                    builder.append(String.class.equals(field.getType()) && fieldValue != null ? "'" : "");
+                    builder.append(appendQuote);
                     builder.append(fieldValue);
-                    builder.append(String.class.equals(field.getType()) && fieldValue != null  ? "'" : "");
+                    builder.append(appendQuote);
                 }else{
                     // consider as the relationship column
                     OneToOne oneToOneAnnotation = field.getAnnotation(OneToOne.class);
                     if(oneToOneAnnotation != null){
                         JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
                         fieldValue = ReflectionUtils.invokeGetter(field.get(o), joinColumnAnnotation.referencedColumnName());
-                        builder.append(String.class.equals(field.getType()) && fieldValue != null ? "'" : "");
+                        builder.append(appendQuote);
                         builder.append(fieldValue);
-                        builder.append(String.class.equals(field.getType()) && fieldValue != null  ? "'" : "");
+                        builder.append(appendQuote);
                     }
                 }
                 builder.append(",");
@@ -78,15 +80,38 @@ public class MySQLQueryGenerator implements QueryGenerator {
         for (Field field : o.getClass().getDeclaredFields()) {
             builder.append(getColumnName(field));
             builder.append(" = ");
-            Object value = ReflectionUtils.invokeGetter(o, field.getName());
 
-            // if value is string: 'Zayar Linn Naung'
-            String appendQuote = String.class.equals(value.getClass())? "'": "";
-            builder.append(appendQuote);
-            builder.append(value);
-            builder.append(appendQuote);
+            String fieldTypeName = field.getType().getSimpleName().toLowerCase();
+            Object value = ReflectionUtils.invokeGetter(o, field.getName());
+            String appendQuote = String.class.equals(field.getType()) && value != null ? "'": "";
+
+            if(MySQLUtils.dataTypeMap().containsKey(fieldTypeName)){
+                // if value is string: 'Zayar Linn Naung'
+                builder.append(appendQuote);
+                builder.append(value);
+                builder.append(appendQuote);
+            } else{
+                // consider as the relationship column
+                OneToOne oneToOneAnnotation = field.getAnnotation(OneToOne.class);
+                if(oneToOneAnnotation != null){
+                    JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
+
+                    Object relationshipFieldValue = ReflectionUtils.invokeGetter(o, field.getName());
+                    Object referencedColumnValue = ReflectionUtils.invokeGetter(relationshipFieldValue, joinColumnAnnotation.referencedColumnName());
+
+                    // if relationship does not have id, save it or else update it.
+                    if(referencedColumnValue != null){
+                        builder.append(appendQuote);
+                        builder.append(referencedColumnValue);
+                        builder.append(appendQuote);
+                    }
+
+
+                }
+            }
             builder.append(",");
         }
+
         builder.replace(builder.length() - 1, builder.length(), "");
 
         builder.append(" WHERE ");
