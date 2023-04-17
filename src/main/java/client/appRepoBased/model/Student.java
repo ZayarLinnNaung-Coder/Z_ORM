@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.z_orm.annotation.*;
 import org.z_orm.persistence.CascadeType;
+import org.z_orm.persistence.FetchType;
 
 @Entity
 @Getter
@@ -20,7 +21,7 @@ public class Student {
     private String email;
     private int age;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id", referencedColumnName = "id")
     private Teacher teacher;
 

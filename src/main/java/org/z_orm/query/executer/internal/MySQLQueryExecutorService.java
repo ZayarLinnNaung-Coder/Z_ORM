@@ -10,6 +10,7 @@ import org.z_orm.annotation.OneToOne;
 import org.z_orm.logging.logger.Logger;
 import org.z_orm.logging.logger.LoggerFactory;
 import org.z_orm.persistence.ConstraintInfo;
+import org.z_orm.persistence.FetchType;
 import org.z_orm.query.executer.QueryExecutorService;
 import org.z_orm.query.generator.QueryGenerator;
 import org.z_orm.query.generator.internal.MySQLQueryGenerator;
@@ -54,7 +55,7 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
                     final Id idAnnotation = field.getAnnotation(Id.class);
 
                     if(idAnnotation != null){
-                        Object fieldValue = getFieldValueFromResultSet(field.getType(), resultSet, "GENERATED_KEY");
+                        Object fieldValue = getFieldValueFromResultSet(field, resultSet, "GENERATED_KEY");
                         ReflectionUtils.invokeSetter(o, field.getName(), fieldValue);
                     }
                 }
@@ -170,7 +171,6 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
 
             for (Field field : targetEntity.getDeclaredFields()) {
                 String columnName = "";
-                Class<?> fieldType = field.getType();
                 final Column columnAnnotation = field.getAnnotation(Column.class);
 
                 if(columnAnnotation != null){
@@ -180,7 +180,7 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
                     columnName = joinColumnAnnotation.name();
                 }
 
-                Object fieldValue = getFieldValueFromResultSet(fieldType, resultSet, columnName);
+                Object fieldValue = getFieldValueFromResultSet(field, resultSet, columnName);
                 ReflectionUtils.invokeSetter(obj, field.getName(), fieldValue);
             }
 
@@ -197,9 +197,10 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
         return obj;
     }
 
-    private Object getFieldValueFromResultSet(Class<?> fieldType, ResultSet resultSet, String columnName){
+    private Object getFieldValueFromResultSet(Field field, ResultSet resultSet, String columnName){
 
         Object result = null;
+        Class<?> fieldType = field.getType();
 
         try {
 
@@ -207,8 +208,13 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
                 result = resultSet.getObject(columnName);
             }else{
                 // considered as the relationship field
-                Object o = resultSet.getObject(columnName);
-                result = findById(fieldType, o).get();
+                OneToOne oneToOneAnnotation = field.getAnnotation(OneToOne.class);
+
+                FetchType fetchType = oneToOneAnnotation.fetch();
+                if(FetchType.EAGER.equals(fetchType)){
+                    Object o = resultSet.getObject(columnName);
+                    result = findById(fieldType, o).get();
+                }
             }
         } catch (SQLException throwable) {
             throwable.printStackTrace();
