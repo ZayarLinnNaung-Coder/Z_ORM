@@ -11,7 +11,7 @@ public class MySQLUtils {
         dataTypeMap.put("character", CHAR);
         dataTypeMap.put("string", NVARCHAR);
         dataTypeMap.put("boolean", BOOL);
-        dataTypeMap.put("Integer", INT);
+        dataTypeMap.put("integer", INT);
         dataTypeMap.put("int", INT);
         dataTypeMap.put("long", BIGINT);
         dataTypeMap.put("float", FLOAT);

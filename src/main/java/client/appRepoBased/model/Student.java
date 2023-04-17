@@ -19,4 +19,8 @@ public class Student {
     private String lastName;
     private String email;
     private int age;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "teacher_id", referencedColumnName = "id")
+    private Teacher teacher;
 }

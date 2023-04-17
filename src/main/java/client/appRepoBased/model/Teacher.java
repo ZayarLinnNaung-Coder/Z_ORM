@@ -20,8 +20,4 @@ public class Teacher implements Serializable {
     private Long id;
     private String name;
     private int age;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "student_id", referencedColumnName = "id")
-    private Student student;
 }

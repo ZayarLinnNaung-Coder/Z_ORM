@@ -34,11 +34,26 @@ public class MySQLQueryGenerator implements QueryGenerator {
             builder.append(") ");
             builder.append("VALUES (");
             for (Field field : o.getClass().getDeclaredFields()) {
+
+                String fieldTypeName = field.getType().getSimpleName().toLowerCase();
+
                 field.setAccessible(true);
                 Object fieldValue = field.get(o);
-                builder.append(String.class.equals(field.getType()) && fieldValue != null ? "'" : "");
-                builder.append(fieldValue);
-                builder.append(String.class.equals(field.getType()) && fieldValue != null  ? "'" : "");
+                if(MySQLUtils.dataTypeMap().containsKey(fieldTypeName)){
+                    builder.append(String.class.equals(field.getType()) && fieldValue != null ? "'" : "");
+                    builder.append(fieldValue);
+                    builder.append(String.class.equals(field.getType()) && fieldValue != null  ? "'" : "");
+                }else{
+                    // consider as the relationship column
+                    OneToOne oneToOneAnnotation = field.getAnnotation(OneToOne.class);
+                    if(oneToOneAnnotation != null){
+                        JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
+                        fieldValue = ReflectionUtils.invokeGetter(field.get(o), joinColumnAnnotation.referencedColumnName());
+                        builder.append(String.class.equals(field.getType()) && fieldValue != null ? "'" : "");
+                        builder.append(fieldValue);
+                        builder.append(String.class.equals(field.getType()) && fieldValue != null  ? "'" : "");
+                    }
+                }
                 builder.append(",");
             }
             builder.replace(builder.length() - 1, builder.length(), "");
@@ -178,7 +193,6 @@ public class MySQLQueryGenerator implements QueryGenerator {
             builder.append(",");
         }
 
-
         constraintTypeFieldMap.forEach((sqlConstraintType, fields) -> {
             fields.forEach(f -> {
                 switch (sqlConstraintType){
@@ -193,8 +207,6 @@ public class MySQLQueryGenerator implements QueryGenerator {
                 builder.append(",");
             });
         });
-
-
 
         builder.replace(builder.length() - 1, builder.length(), "");
         builder.append(");");
@@ -253,17 +265,17 @@ public class MySQLQueryGenerator implements QueryGenerator {
         JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("alter table ");
+        sb.append("ALTER TABLE ");
         sb.append(entity.getSimpleName());
-        sb.append(" add constraint ");
+        sb.append(" ADD CONSTRAINT ");
         sb.append(generateRandomFKConstraint(entity, field));
-        sb.append(" foreign key ");
+        sb.append(" FOREIGN KEY ");
         sb.append("(");
         if(joinColumnAnnotation != null){
             sb.append(joinColumnAnnotation.name());
         }
         sb.append(") ");
-        sb.append("references ");
+        sb.append("REFERENCES ");
         sb.append(field.getType().getSimpleName());
         sb.append("(");
         if(joinColumnAnnotation != null){
@@ -352,10 +364,21 @@ public class MySQLQueryGenerator implements QueryGenerator {
 
     private String getColumnName(Field field){
         Column columnAnnotation = field.getAnnotation(Column.class);
-        if(StringUtils.isNullOrEmpty(columnAnnotation.name())){
-            return field.getName();
-        } else{
-            return columnAnnotation.name();
+        if(columnAnnotation != null){
+            if(StringUtils.isNullOrEmpty(columnAnnotation.name())){
+                // or get only field name
+                return field.getName();
+            } else{
+                return columnAnnotation.name();
+            }
+        }else{
+            // consider as relationShip field
+            OneToOne oneToOneAnnotation = field.getAnnotation(OneToOne.class);
+            if(oneToOneAnnotation != null){
+                JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
+                return joinColumnAnnotation.name();
+            }
+            return "";
         }
     }
 }

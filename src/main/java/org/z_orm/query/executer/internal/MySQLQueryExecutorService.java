@@ -40,6 +40,7 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
     @Override
     public Object save(Object o) {
         try {
+            resolveRelationshipData(o);
             String queryString = queryGenerator.generateSaveQuery(o);
             PreparedStatement stmt = connection.prepareStatement(queryString, Statement.RETURN_GENERATED_KEYS);
             stmt.execute();
@@ -57,13 +58,35 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
                     }
                 }
             }
-
-            logger.info("Inserted successfully...");
         } catch (SQLException throwable) {
             throwable.printStackTrace();
         }
 
         return o;
+    }
+
+    private void resolveRelationshipData(Object o) {
+
+        Object idValue = null;
+
+        for (Field field : o.getClass().getDeclaredFields()) {
+
+            if(field.getAnnotation(OneToOne.class) != null){
+                Object relationshipObject = ReflectionUtils.invokeGetter(o, field.getName());
+                for (Field declaredField : relationshipObject.getClass().getDeclaredFields()) {
+                    if(declaredField.getAnnotation(Id.class) != null){
+                        idValue = ReflectionUtils.invokeGetter(relationshipObject, declaredField.getName());
+                    }
+                }
+
+                if(idValue != null){
+                    updateById(relationshipObject, idValue.toString());
+                }else {
+                    save(relationshipObject);
+                }
+            }
+
+        }
     }
 
     @Override

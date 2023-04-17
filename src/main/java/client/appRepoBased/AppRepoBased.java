@@ -39,17 +39,18 @@ public class AppRepoBased {
 
 //        StudentService studentService = new StudentService();
 //
-//        Student student = new Student();
-//        student.setFirstName("Zayar");
-//        student.setLastName("Linn Naung");
-//        student.setEmail("");
-//        student.setAge(23);
-//        studentRepository.save(student);
-//
-//        Teacher teacher = new Teacher();
-//        teacher.setName("Zayar Linn Naung");
-//        teacher.setAge(53);
-//        teacherRepository.save(teacher);
+        Teacher teacher = new Teacher();
+        teacher.setId(2L);
+        teacher.setName("Zayar Linn Naung");
+        teacher.setAge(53);
+
+        Student student = new Student();
+        student.setFirstName("Zayar");
+        student.setLastName("Linn Naung");
+        student.setEmail("");
+        student.setAge(23);
+        student.setTeacher(teacher);
+        studentRepository.save(student);
 //
 //        System.out.println(teacherRepository.findAll());
 //        System.out.println(studentRepository.findAll());
@@ -59,7 +60,7 @@ public class AppRepoBased {
     private static void initContext(){
         ConfigurationContext configurationContext = ConfigurationContext.getInstance();
         configurationContext.setDbInfo(getDBInfo());
-        configurationContext.setDdlType(DDLType.CREATE);
+        configurationContext.setDdlType(DDLType.UPDATE);
         configurationContext.setDialectType(DialectType.MySQLDialect);
     }
 
