@@ -8,6 +8,7 @@ import org.z_orm.annotation.*;
 import org.z_orm.exception.NotKnownDataTypeException;
 import org.z_orm.logging.logger.Logger;
 import org.z_orm.logging.logger.LoggerFactory;
+import org.z_orm.persistence.CascadeType;
 import org.z_orm.query.generator.QueryGenerator;
 import org.z_orm.query.generator.SQLConstraintType;
 import org.z_orm.reflection.ReflectionUtils;
@@ -234,7 +235,7 @@ public class MySQLQueryGenerator implements QueryGenerator {
         });
 
         builder.replace(builder.length() - 1, builder.length(), "");
-        builder.append(");");
+        builder.append(") ENGINE=InnoDB;");
 
         return builder.toString();
     }
@@ -287,6 +288,7 @@ public class MySQLQueryGenerator implements QueryGenerator {
     @Override
     public String generateAddFKConstraintQuery(Class entity, Field field) {
 
+        OneToOne oneToOneAnnotation = field.getAnnotation(OneToOne.class);
         JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
 
         StringBuilder sb = new StringBuilder();
@@ -307,6 +309,13 @@ public class MySQLQueryGenerator implements QueryGenerator {
             sb.append(joinColumnAnnotation.referencedColumnName());
         }
         sb.append(") ");
+
+        boolean deleteCascade = Arrays.stream(oneToOneAnnotation.cascade())
+                .anyMatch(cascadeType -> CascadeType.ALL.equals(cascadeType) || CascadeType.REMOVE.equals(cascadeType));
+        if(deleteCascade){
+            sb.append("ON DELETE CASCADE;");
+        }
+
         return sb.toString();
     }
 

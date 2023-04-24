@@ -8,6 +8,7 @@ import org.z_orm.annotation.AnnotationProcessor;
 import org.z_orm.annotation.Column;
 import org.z_orm.annotation.Entity;
 import org.z_orm.annotation.OneToOne;
+import org.z_orm.configuration.ConfigurationContext;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -15,9 +16,10 @@ import java.util.Set;
 public class EntityManager {
 
     public Set<Class> loadAllEntities(){
+        ConfigurationContext configurationContext = ConfigurationContext.getInstance();
         Set<Class> classSet = new LinkedHashSet<>();
 
-        new Reflections("client.appRepoBased.model").getTypesAnnotatedWith(Entity.class).forEach(c -> {
+        new Reflections(configurationContext.getEntityPath()).getTypesAnnotatedWith(Entity.class).forEach(c -> {
             try {
                 for (CtField declaredField : ClassPool.getDefault().getCtClass(c.getName()).getDeclaredFields()) {
                     // Add default @Column to all declared fields

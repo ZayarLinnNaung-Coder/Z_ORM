@@ -53,20 +53,19 @@ public class AppRepoBased {
         bag.setType("_");
 //
         Student student = new Student();
-        student.setId(11L);
-        student.setFirstName("Zayar");
-        student.setLastName("Linn Naung");
+        student.setFirstName("Hein");
+        student.setLastName("Htet Aung");
         student.setEmail("");
         student.setAge(23);
         student.setTeacher(teacher);
         student.setBag(bag);
         studentRepository.save(student);
-//
+
 //        System.out.println(bagRepository.findAll());
 //        System.out.println(teacherRepository.findAll());
 //        System.out.println(studentRepository.findAll());
 
-
+//        System.out.println(studentRepository.findById(11L));
 
     }
 
@@ -75,6 +74,7 @@ public class AppRepoBased {
         configurationContext.setDbInfo(getDBInfo());
         configurationContext.setDdlType(DDLType.UPDATE);
         configurationContext.setDialectType(DialectType.MySQLDialect);
+        configurationContext.setEntityPath("client.appRepoBased.model");
     }
 
     private static DBInfo getDBInfo(){

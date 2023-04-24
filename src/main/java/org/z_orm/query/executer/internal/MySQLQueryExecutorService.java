@@ -200,7 +200,7 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+            throw new NullPointerException(e.getMessage());
         }
 
         return obj;

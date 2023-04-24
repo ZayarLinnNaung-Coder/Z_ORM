@@ -15,6 +15,7 @@ public class ConfigurationContext {
     private DialectType dialectType;
     private boolean showSql;
     private DDLType ddlType;
+    private String entityPath;
 
     private static ConfigurationContext instance;
 
