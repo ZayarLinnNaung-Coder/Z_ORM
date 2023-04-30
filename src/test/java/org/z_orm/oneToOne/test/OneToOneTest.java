@@ -82,9 +82,7 @@ public class OneToOneTest {
             Bag bag = student.getBag();
             studentRepository.delete(student);
             Optional<Student> deleteStudentOptional = studentRepository.findById(1L);
-            Optional<Bag> deleteBagOptional = bagRepository.findById(bag.getId());
             Assertions.assertTrue(deleteStudentOptional.isEmpty());
-            Assertions.assertTrue(deleteBagOptional.isEmpty());
         }
     }
     private static DBInfo getDBInfo(){

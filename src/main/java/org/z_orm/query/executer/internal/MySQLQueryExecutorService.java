@@ -3,10 +3,7 @@ package org.z_orm.query.executer.internal;
 import com.mysql.cj.util.StringUtils;
 import org.z_orm.DBConnection;
 import org.z_orm.DDLType;
-import org.z_orm.annotation.Column;
-import org.z_orm.annotation.Id;
-import org.z_orm.annotation.JoinColumn;
-import org.z_orm.annotation.OneToOne;
+import org.z_orm.annotation.*;
 import org.z_orm.logging.logger.Logger;
 import org.z_orm.logging.logger.LoggerFactory;
 import org.z_orm.persistence.ConstraintInfo;
@@ -17,6 +14,8 @@ import org.z_orm.query.generator.internal.MySQLQueryGenerator;
 import org.z_orm.query.generator.internal.MySQLUtils;
 import org.z_orm.reflection.ReflectionUtils;
 
+import java.lang.annotation.Annotation;
+import java.lang.ref.Reference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
@@ -160,10 +159,11 @@ public class MySQLQueryExecutorService extends QueryExecutorService {
 
     @Override
     public void deleteById(Class entityClass, String id) {
-        String queryString = queryGenerator.generateDeleteByIdQuery(entityClass, id);
-        logger.info(queryString);
 
         try {
+            String queryString = queryGenerator.generateDeleteByIdQuery(entityClass, id);
+            logger.info(queryString);
+
             PreparedStatement stmt = connection.prepareStatement(queryString);
             stmt.executeUpdate();
         } catch (SQLException throwable) {

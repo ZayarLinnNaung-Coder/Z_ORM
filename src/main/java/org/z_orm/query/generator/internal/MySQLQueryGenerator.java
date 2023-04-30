@@ -149,7 +149,9 @@ public class MySQLQueryGenerator implements QueryGenerator {
             } else{
                 // considered as the relationship column
                 OneToOne oneToOneAnnotation = field.getAnnotation(OneToOne.class);
-                if(oneToOneAnnotation != null){
+                OneToMany oneToManyAnnotation = field.getAnnotation(OneToMany.class);
+
+                if(oneToOneAnnotation != null || oneToManyAnnotation != null){
                     JoinColumn joinColumnAnnotation = field.getAnnotation(JoinColumn.class);
                     if(joinColumnAnnotation != null){
                         builder.append(joinColumnAnnotation.name());

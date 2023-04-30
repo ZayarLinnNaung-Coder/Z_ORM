@@ -38,7 +38,6 @@ public class ReflectionUtils {
         try {
             PropertyDescriptor pd = new PropertyDescriptor(variableName, targetClass);
             returnType = pd.getReadMethod().getReturnType();
-
         } catch ( IllegalArgumentException | IntrospectionException e) {
             e.printStackTrace();
         }

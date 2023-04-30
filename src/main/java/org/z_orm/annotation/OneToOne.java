@@ -15,5 +15,5 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface OneToOne {
     CascadeType[] cascade() default {};
     FetchType fetch() default FetchType.EAGER;
-    String mappedBy() default "";
+//    String mappedBy() default "";
 }

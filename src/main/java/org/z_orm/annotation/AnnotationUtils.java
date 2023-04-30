@@ -7,7 +7,6 @@ import java.lang.instrument.UnmodifiableClassException;
 import java.security.ProtectionDomain;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
@@ -84,6 +83,7 @@ public class AnnotationUtils {
     }
 
     private static void retransformClass(Class<?> clazz, byte[] byteCode) {
+
         ClassFileTransformer cft = new ClassFileTransformer() {
             @Override
             public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
