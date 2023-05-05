@@ -13,3 +13,5 @@ It supports flexibility and easy to use for developers who want to touch the dat
   <li>Support any kind of relational databases</li>
   <li>Easy to configure</li>
 </ul>
+
+Documentation -> https://z-orm-docs.netlify.app/
